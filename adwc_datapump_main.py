@@ -135,6 +135,20 @@ class DataPump(object):
         print
         "adwc_export() end!"
 
+    def datapump_import(self):
+        #impdp_args = db_user + '/' + db_pass + '@' + db_alias + ' credential=OBJ_STORE_CRED' + ' tables=' + table + ' dumpfile=/u03/dbfs/7CCB13275D285150E0531A10000A7E92/data/dpdump/test_export_python1.dmp' + ' DIRECTORY=DATA_PUMP_DIR' + ' transform=segment_attributes:n transform=dwcs_cvt_iots:y transform=constraint_use_default_index:y exclude=index, cluster, indextype, materialized_view, materialized_view_log, materialized_zonemap, db_link'
+        adwc_impdp = self.username + '/' + self.password + '@' + self.service_name + ' tables=' + self.table + ' credential=' + self.cred + ' DUMPFILE=' + self.dump_file + ' DIRECTORY=DATA_PUMP_DIR' + ' transform=segment_attributes:n transform=dwcs_cvt_iots:y transform=constraint_use_default_index:y exclude=index, cluster, indextype, materialized_view, materialized_view_log, materialized_zonemap, db_link'
+        adwc_import = subprocess.Popen(["impdp", adwc_impdp],
+                                       stdout=subprocess.PIPE,
+                                       env=self.adwc_env)
+        if adwc_import.wait() != 0:
+            print
+            "adwc_import() failed!"
+            raise Exception("adwc_import() failed!")
+        print
+        "adwc_import() end!"
+
+
     def movefile_os(self):
         pool = cx_Oracle.SessionPool(self.username, self.password,self.service_name, 2, 5, 1, threaded=True)
         conn = pool.acquire()
