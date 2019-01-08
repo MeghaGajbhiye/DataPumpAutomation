@@ -137,7 +137,7 @@ class DataPump(object):
 
     def datapump_import(self):
         #impdp_args = db_user + '/' + db_pass + '@' + db_alias + ' credential=OBJ_STORE_CRED' + ' tables=' + table + ' dumpfile=/u03/dbfs/7CCB13275D285150E0531A10000A7E92/data/dpdump/test_export_python1.dmp' + ' DIRECTORY=DATA_PUMP_DIR' + ' transform=segment_attributes:n transform=dwcs_cvt_iots:y transform=constraint_use_default_index:y exclude=index, cluster, indextype, materialized_view, materialized_view_log, materialized_zonemap, db_link'
-        adwc_impdp = self.username + '/' + self.password + '@' + self.service_name + ' tables=' + self.table + ' credential=' + self.cred + ' DUMPFILE=' + self.dump_file + ' DIRECTORY=DATA_PUMP_DIR' + ' transform=segment_attributes:n transform=dwcs_cvt_iots:y transform=constraint_use_default_index:y exclude=index, cluster, indextype, materialized_view, materialized_view_log, materialized_zonemap, db_link'
+        adwc_impdp = self.username + '/' + self.password + '@' + self.service_name + ' tables=' + self.table + ' credential=' + self.cred + ' DUMPFILE=' + self.object_storage + ' DIRECTORY=DATA_PUMP_DIR' + ' transform=segment_attributes:n transform=dwcs_cvt_iots:y transform=constraint_use_default_index:y exclude=index, cluster, indextype, materialized_view, materialized_view_log, materialized_zonemap, db_link'
         adwc_import = subprocess.Popen(["impdp", adwc_impdp],
                                        stdout=subprocess.PIPE,
                                        env=self.adwc_env)
@@ -147,7 +147,8 @@ class DataPump(object):
             raise Exception("adwc_import() failed!")
         print
         "adwc_import() end!"
-
+	print ("time.sleep(5)")
+	time.sleep(10)
 
     def movefile_os(self):
         pool = cx_Oracle.SessionPool(self.username, self.password,self.service_name, 2, 5, 1, threaded=True)
@@ -165,6 +166,14 @@ class DataPump(object):
  	print (self.dump_file, self.cred, self.object_storage, self.dump_file)
 	
 	bind_vars = {"dump_file":str(self.dump_file), "cred":str(self.cred), "object_storage":str(self.object_storage) }
+	sql1="""BEGIN
+  	DBMS_CLOUD.PUT_OBJECT(
+    	credential_name => :cred,
+    	object_uri => :object_storage,
+    	directory_name  => 'DATA_PUMP_DIR',
+    	file_name => :dump_file);
+	END;
+	"""
 	sql = """ declare
         p_file utl_file.file_type;
         begin
@@ -181,7 +190,7 @@ class DataPump(object):
             :dump_file );
             end;
         """
-	cursor.execute(sql, bind_vars)
+	cursor.execute(sql1, bind_vars)
 	
         print("TheLongQuery(): done execute...")
         elapsed_time = time.time() - start_time
@@ -192,13 +201,16 @@ class DataPump(object):
         print("Total time in seconds to finish : ")
         print(elapsed_time)
         print("\n")
+	print ("time.sleep(5)")
+	time.sleep(10)
 
 def main(args):
     """Main function"""
 
     datapump = DataPump(args)
-    datapump.datapump_export()
-    datapump.movefile_os()
+    #datapump.datapump_export()
+    #datapump.movefile_os()
+    datapump.datapump_import()
 
 class ParseValues(object):
     """Main class"""

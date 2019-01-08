@@ -21,7 +21,7 @@ def db_export():
 	db_alias = sys.argv[3]
 	table = sys.argv[4]
 	dump_file = sys.argv[5]
-	impdp_args = db_user + '/' + db_pass + '@' + db_alias + ' credential=OBJ_STORE_CRED' + ' tables=' + table + ' dumpfile=/u03/dbfs/7CCB13275D285150E0531A10000A7E92/data/dpdump/test_export_python1.dmp' + ' DIRECTORY=DATA_PUMP_DIR' + ' transform=segment_attributes:n transform=dwcs_cvt_iots:y transform=constraint_use_default_index:y exclude=index, cluster, indextype, materialized_view, materialized_view_log, materialized_zonemap, db_link'
+	impdp_args = db_user + '/' + db_pass + '@' + db_alias + ' credential=DEF_CRED_NAME' + ' DIRECTORY=data_pump_dir' + ' tables=' + table + ' dumpfile=https://swiftobjectstorage.us-ashburn-1.oraclecloud.com/v1/gse00014638/ETEBucket/test_file_megha_script.dmp' + ' transform=segment_attributes:n transform=dwcs_cvt_iots:y transform=constraint_use_default_index:y exclude=index, cluster, indextype, materialized_view, materialized_view_log, materialized_zonemap, db_link'
 	print impdp_args
 	db_exp_work = subprocess.Popen(["impdp", impdp_args], 
 				stdout=subprocess.PIPE, env={"PATH": os.environ["PATH"], "ORACLE_HOME": os.environ["ORACLE_HOME"], "TNS_ADMIN": os.environ["TNS_ADMIN"], "LD_LIBRARY_PATH": os.environ["LD_LIBRARY_PATH"] })
