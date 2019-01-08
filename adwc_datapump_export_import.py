@@ -52,7 +52,7 @@ begin
 
 
 
-  p_file := utl_file.fopen( 'DATA_PUMP_DIR', 'test_file_megha.txt', 'w' );
+  p_file := utl_file.fopen( 'DATA_PUMP_DIR', 'test_export_python1.dmp', 'w' );
 
   for c in (select * from sales WHERE ROWNUM <= 10)
 
@@ -67,7 +67,7 @@ begin
 
     'OBJ_STORE_CRED', 
 
-    'https://swiftobjectstorage.us-ashburn-1.oraclecloud.com/v1/gse00014638/ETEBucket/test_file_megha.txt',
+    'https://swiftobjectstorage.us-ashburn-1.oraclecloud.com/v1/gse00014638/ETEBucket/test_file_megha1.txt',
 
     'DATA_PUMP_DIR',
 

@@ -2,7 +2,11 @@ from __future__ import print_function
 import os
 import subprocess
 import sys
-
+import argparse
+import base64
+import json
+import os
+import sys
 
 import cx_Oracle
 
@@ -144,24 +148,27 @@ class DataPump(object):
 
         print(now)
 
-        cursor.execute("""
-        declare
+ 	print (self.dump_file, self.cred, self.object_storage, self.dump_file)
+	
+	bind_vars = {"dump_file":str(self.dump_file), "cred":str(self.cred), "object_storage":str(self.object_storage) }
+	sql = """ declare
         p_file utl_file.file_type;
         begin
-        p_file := utl_file.fopen( 'DATA_PUMP_DIR', %s , 'w' );
+        p_file := utl_file.fopen( 'DATA_PUMP_DIR', :dump_file , 'w' );
         for c in (select * from sales WHERE ROWNUM <= 10)
         loop
             utl_file.put_line(p_file, c.cust_id );
             end loop;
         utl_file.fclose(p_file);
         dbms_cloud.put_object( 
-            %s, 
-            %s,
+            :cred, 
+            :object_storage,
             'DATA_PUMP_DIR',
-            %s );
+            :dump_file );
             end;
-        """, (self.dump_file, self.cred, self.Object_storage, self.dump_file))
-
+        """
+	cursor.execute(sql, bind_vars)
+	
         print("TheLongQuery(): done execute...")
         elapsed_time = time.time() - start_time
         print("All done!\n")
@@ -179,7 +186,7 @@ def main(args):
     datapump.datapump_export()
     datapump.movefile_os()
 
-class ParseValues():
+class ParseValues(object):
     """Main class"""
 
     def __init__(self):
@@ -192,14 +199,13 @@ class ParseValues():
                 <-sn, --sname> <Service Name>
                 <-r, --recipe> <Enter Recipe Name>''')
 
-        acts = ['create', 'delete', 'view', 'scale', 'validate']
-        parser.add_argument('action',
-                            choices=acts,
-                            help="Required Field")
         parser.add_argument("-u", "--username",
                            help="Enter the username",
                            default=None, required = True)
-        parser.add_argument("-t", "--table",
+        parser.add_argument("-p", "--password",
+                            help="Enter password",
+                            default=None, required=True)
+	parser.add_argument("-t", "--table",
                             help="Enter the tablename",
                             default=None, required=True)
         parser.add_argument("-f", "--dumpfile",
@@ -214,19 +220,12 @@ class ParseValues():
         parser.add_argument("-sn", "--sname",
                             help="Enter the service name",
                             default=None, required = True)
-        parser.add_argument("-adwc", "--adwc",
-                            help="For Autonomous Cloud Service",
-                            action = 'store_true')
-        parser.add_argument("-c", "--ccs",
-                            help="For Compute Cloud Service",
-                            action = 'store_true')
-        parser.add_argument("--debug",
-                            help="print debug messages to stderr",
-                            action = 'store_true')
-        # parser.add_argument("-r", "--recipe",
-        #                     help="Add Recipe",
-        #                     type = str,
-        #                    required = True)
+        #parser.add_argument("-adwc", "--adwc",
+        #                    help="For Autonomous Cloud Service",
+        #                    action = 'store_true')
+        #parser.add_argument("--debug",
+        #                    help="print debug messages to stderr",
+        #                    action = 'store_true')
         args = parser.parse_args()
         main(args)
 
